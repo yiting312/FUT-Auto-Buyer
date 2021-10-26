@@ -19,8 +19,9 @@ export const transferListUtil = function (relistUnsold, minSoldCount) {
       }).length;
       updateStats("unsoldItems", unsoldItems);
 
-      const shouldClearSold = soldItems >= minSoldCount;
-
+      //const shouldClearSold = soldItems >= minSoldCount;
+      const shouldClearSold = true;
+      relistUnsold = true;
       if (unsoldItems && relistUnsold) {
         services.Item.relistExpiredAuctions().observe(
           this,

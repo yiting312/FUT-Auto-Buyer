@@ -4,7 +4,7 @@ import {
   idAbServerLogin,
 } from "../elementIds.constants";
 import { getValue } from "../services/repository";
-import { getUserAccessToken } from "./authUtil";
+//import { getUserAccessToken } from "./authUtil";
 import { downloadJson, hideLoader, showLoader } from "./commonUtil";
 import { sendUINotification } from "./notificationUtil";
 import { showPopUp } from "./popupUtil";
@@ -134,7 +134,8 @@ const downloadFilters = async () => {
   const url = atob(
     "aHR0cHM6Ly92YnAwOHc3M3IwLmV4ZWN1dGUtYXBpLmV1LXdlc3QtMS5hbWF6b25hd3MuY29tL2Rldi9maWx0ZXJz"
   );
-  const userToken = await getUserAccessToken();
+  //const userToken = await getUserAccessToken();
+  const userToken = "";
   return fetch(url, {
     headers: {
       Accept: "application/json",

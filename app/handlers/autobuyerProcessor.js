@@ -1,3 +1,4 @@
+import { getSellPriceFromFutBin,fetchPricesFromFutBinBulk } from "../utils/futbinUtil";
 import { idAbStatus, idAutoBuyerFoundLog } from "../elementIds.constants";
 import { trackMarketPrices } from "../services/analytics";
 import {
@@ -34,6 +35,9 @@ import { searchErrorHandler } from "./errorHandler";
 
 let interval = null;
 let passInterval = null;
+let isOnlyWatch = true;
+let needTransferList = false;
+let needSearchFutMarket = false;
 const currentBids = new Set();
 
 export const startAutoBuyer = async function (isResume) {
@@ -47,27 +51,30 @@ export const startAutoBuyer = async function (isResume) {
   setValue("autoBuyerActive", true);
   setValue("autoBuyerState", "Active");
   if (!isResume) {
+    setValue("isOnlyWatch", isOnlyWatch);
+    setValue("needTransferList", needTransferList);
+    setValue("needSearchFutMarket", needSearchFutMarket);
     setValue("botStartTime", new Date());
     setValue("purchasedCardCount", 0);
     setValue("searchFailedCount", 0);
     setValue("currentPage", 1);
   }
+  let pauseBotWithContext = pauseBotIfRequired.bind(this);
   let switchFilterWithContext = switchFilterIfRequired.bind(this);
-  let srchTmWithContext = searchTransferMarket.bind(this);
   let watchListWithContext = watchListUtil.bind(this);
   let transferListWithContext = transferListUtil.bind(this);
-  let pauseBotWithContext = pauseBotIfRequired.bind(this);
+  let srchTmWithContext = searchTransferMarket.bind(this);
   await switchFilterWithContext();
   let buyerSetting = getValue("BuyerSettings");
   !isResume && (await addUserWatchItems());
-  sendPinEvents("Hub - Transfers");
-  await srchTmWithContext(buyerSetting);
-  sendPinEvents("Hub - Transfers");
-  await transferListWithContext(
-    buyerSetting["idAbSellToggle"],
-    buyerSetting["idAbMinDeleteCount"],
-    true
-  );
+  // sendPinEvents("Hub - Transfers");
+  // await srchTmWithContext(buyerSetting);
+  // sendPinEvents("Hub - Transfers");
+  // await transferListWithContext(
+  //   buyerSetting["idAbSellToggle"],
+  //   buyerSetting["idAbMinDeleteCount"],
+  //   true
+  // );
   interval = setRandomInterval(async () => {
     passInterval = pauseBotWithContext(buyerSetting);
     stopBotIfRequired(buyerSetting);
@@ -75,17 +82,32 @@ export const startAutoBuyer = async function (isResume) {
     if (isBuyerActive) {
       await switchFilterWithContext();
       buyerSetting = getValue("BuyerSettings");
-      sendPinEvents("Hub - Transfers");
-      await srchTmWithContext(buyerSetting);
-      sendPinEvents("Hub - Transfers");
-      await watchListWithContext(buyerSetting);
-      sendPinEvents("Hub - Transfers");
-      await transferListWithContext(
-        buyerSetting["idAbSellToggle"],
-        buyerSetting["idAbMinDeleteCount"]
-      );
+      if (isOnlyWatch){
+        sendPinEvents("Hub - Transfers");
+        await watchListWithContext(buyerSetting);
+      }else if(needTransferList){
+        sendPinEvents("Hub - Transfers");
+        await transferListWithContext(
+          buyerSetting["idAbSellToggle"],
+          buyerSetting["idAbMinDeleteCount"]
+        );
+        refreshActionStates(false, false, true);
+      }else if(needSearchFutMarket){
+        sendPinEvents("Hub - Transfers");
+        await srchTmWithContext(buyerSetting);
+        refreshActionStates(true, false, false);
+      }
     }
   }, ...getRangeValue(buyerSetting["idAbWaitTime"]));
+};
+
+export const refreshActionStates = function (watchAction, transferAction, searchFutAction) {
+  isOnlyWatch = watchAction;
+  needTransferList = transferAction;
+  needSearchFutMarket = searchFutAction;
+  setValue("isOnlyWatch", isOnlyWatch);
+  setValue("needTransferList", needTransferList);
+  setValue("needSearchFutMarket", needSearchFutMarket);
 };
 
 export const stopAutoBuyer = (isPaused) => {
@@ -110,6 +132,7 @@ export const stopAutoBuyer = (isPaused) => {
     .html(isPaused ? "PAUSED" : "IDLE");
 };
 
+//TODO
 const searchTransferMarket = function (buyerSetting) {
   const platform = getUserPlatform();
   return new Promise((resolve) => {
@@ -167,8 +190,26 @@ const searchTransferMarket = function (buyerSetting) {
             setValue("currentPage", 1);
           }
 
+          const playersId = new Set();
           for (let i = response.data.items.length - 1; i >= 0; i--) {
             let player = response.data.items[i];
+            playersId.add(player.definitionId);
+          }
+          const playersIdArray = Array.from(playersId);
+          let pricesJSON = await fetchPricesFromFutBinBulk(
+            playersIdArray,
+            platform
+          );
+          
+          //logWrite("skip >>> (can not find futbin price)");
+
+
+          for (let i = response.data.items.length - 1; i >= 0; i--) {
+            let player = response.data.items[i];
+            if (!pricesJSON[player.definitionId]) {
+              logWrite("skip >>> (can not find futbin price)");
+              continue;
+            }
             let auction = player._auction;
             let type = player.type;
             let playerRating = parseInt(player.rating);
@@ -185,7 +226,38 @@ const searchTransferMarket = function (buyerSetting) {
             let buyNowPrice = auction.buyNowPrice;
             let currentBid = auction.currentBid || auction.startingBid;
             let isBid = auction.currentBid;
+
+            let playerName = formatString(player._staticData.name, 15);
+
+            
+            
+            
+         
+
+            //TODO--get threshold from fut-enhancer
+            // let idBarginThreshold = enhancerSetting["idBarginThreshold"]
+            // writeToLog(
+            //   `fidBarginThreshold:${idBarginThreshold})`,
+            //   idAutoBuyerFoundLog
+            // );
+
+
             let bidPrice = buyerSetting["idAbMaxBid"];
+            let funbinPrice = parseInt(pricesJSON[player.definitionId].prices[platform].LCPrice);
+            if (!funbinPrice||(funbinPrice==null)){
+              logWrite("skip >>> cant get futbin price");
+              continue;
+            }
+            //logWrite('skip >>> cant get futbin price${funbinPrice}'+funbinPrice);
+            let calculatedPrice = roundOffPrice((funbinPrice * 65) / 100);
+            if (!calculatedPrice) {
+              logWrite("skip >>> cant get futbin price");
+              continue;
+            }
+            if (bidPrice > calculatedPrice){
+              bidPrice = calculatedPrice;
+            }
+            
 
             let priceToBid = buyerSetting["idAbBidExact"]
               ? bidPrice
@@ -206,7 +278,7 @@ const searchTransferMarket = function (buyerSetting) {
 
             let bidTxt = formatString(currentBid.toString(), 6);
             let buyTxt = formatString(buyNowPrice.toString(), 6);
-            let playerName = formatString(player._staticData.name, 15);
+            //let playerName = formatString(player._staticData.name, 15);
             let expireTime = formatString(expires, 15);
 
             const shouldCheckRating = minRating || maxRating;
@@ -266,7 +338,7 @@ const searchTransferMarket = function (buyerSetting) {
             if (buyNowPrice <= userBuyNowPrice) {
               logWrite("attempt buy: " + buyNowPrice);
               maxPurchases--;
-              currentBids.add(auction.tradeId);
+              currentBids.add(auction.tradeId);  
               await buyPlayer(
                 player,
                 playerName,

@@ -15,6 +15,8 @@ import { sendPinEvents } from "./notificationUtil";
 import { getBuyBidPrice, getSellBidPrice } from "./priceUtils";
 import { buyPlayer } from "./purchaseUtil";
 import { updateProfit } from "./statsUtil";
+import { refreshActionStates } from "../handlers/autobuyerProcessor";
+
 
 const sellBids = new Set();
 
@@ -31,6 +33,12 @@ export const watchListUtil = function (buyerSetting) {
       let activeItems = response.data.items.filter(function (item) {
         return item._auction && item._auction._tradeState === "active";
       });
+
+      //start to search for new items
+      if (activeItems.length === 0){
+      //if (activeItems.length === 0 && window.maxNewBidNumber > 0){//if activebid is 0 then buy new items
+        refreshActionStates(false, true, false);
+      }
 
       services.Item.refreshAuctions(activeItems).observe(
         this,
@@ -60,6 +68,22 @@ export const watchListUtil = function (buyerSetting) {
 
                 for (var i = 0; i < outBidItems.length; i++) {
                   const currentItem = outBidItems[i];
+                  
+                  let existingValue = getValue(currentItem.definitionId);
+                  if (existingValue) {
+                    let futbinPrice = existingValue.price;
+                    if (!futbinPrice){
+                      continue;
+                    }
+                    let calculatedPrice = roundOffPrice((funbinPrice * 65) / 100);
+                    if (!calculatedPrice) {
+                      logWrite("skip >>> cant get futbin price");
+                      continue;
+                    }
+                    if (bidPrice > calculatedPrice){
+                      bidPrice = calculatedPrice;
+                    }
+                  }
                   await tryBidItems(
                     currentItem,
                     bidPrice,
@@ -69,12 +93,13 @@ export const watchListUtil = function (buyerSetting) {
                 }
               }
 
-              const useFutBinPrice = buyerSetting["idSellFutBinPrice"];
-
+              //const useFutBinPrice = buyerSetting["idSellFutBinPrice"];
               if (
-                isAutoBuyerActive &&
-                ((sellPrice && !isNaN(sellPrice)) || useFutBinPrice)
-              ) {
+                isAutoBuyerActive) {
+              // if (
+              //   isAutoBuyerActive &&
+              //   ((sellPrice && !isNaN(sellPrice)) || useFutBinPrice)
+              // ) {
                 let boughtItems = watchResponse.data.items.filter(function (
                   item
                 ) {
@@ -123,6 +148,20 @@ export const watchListUtil = function (buyerSetting) {
                   } else {
                     services.Item.move(player, ItemPile.CLUB);
                   }
+
+                  //lyt sell logic
+                  let existingValue = getValue(player.definitionId);
+                  if (existingValue) {
+                    let futbinPrice = existingValue.price;
+                    if (!futbinPrice){
+                      continue;
+                    }
+                    await sellWonItems(
+                      player,
+                      futbinPrice,
+                      buyerSetting["idAbWaitTime"]
+                    );
+                  }
                 }
               }
 
@@ -138,6 +177,7 @@ export const watchListUtil = function (buyerSetting) {
                   idAutoBuyerFoundLog
                 );
               }
+              
 
               services.Item.clearTransferMarketCache();
               resolve();
@@ -222,5 +262,5 @@ const sellWonItems = async (player, sellPrice, waitRange) => {
 
   await promisifyTimeOut(function () {
     services.Item.list(player, getSellBidPrice(sellPrice), sellPrice, 3600);
-  }, getRandWaitTime(waitRange));
+  }, 1000);
 };

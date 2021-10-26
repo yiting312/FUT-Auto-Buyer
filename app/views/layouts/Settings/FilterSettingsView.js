@@ -8,10 +8,10 @@ import {
   idAbUploadFilter,
 } from "../../../elementIds.constants";
 import { getValue, setValue } from "../../../services/repository";
-import {
-  getUserAccessToken,
-  handleSignInSignOut,
-} from "../../../utils/authUtil";
+// import {
+//   getUserAccessToken,
+//   handleSignInSignOut,
+// } from "../../../utils/authUtil";
 import { getUserFilters } from "../../../utils/dbUtil";
 import {
   uploadFiltersLocal,
@@ -95,7 +95,8 @@ export const filterHeaderSettingsView = async function () {
     `#${idFilterDropdown}`
   );
 
-  const isLoggedIn = await getUserAccessToken(true);
+  //const isLoggedIn = await getUserAccessToken(true);
+  const isLoggedIn = false;
 
   const rootHeader =
     $(`<div style="width:100%;display: flex;flex-wrap: inherit;">
@@ -104,7 +105,7 @@ export const filterHeaderSettingsView = async function () {
                   idAbServerLogin,
                   isLoggedIn ? "Logout" : "Login to AB Server",
                   () => {
-                    handleSignInSignOut();
+                    //handleSignInSignOut();
                   },
                   "call-to-action"
                 )}

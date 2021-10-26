@@ -105,3 +105,80 @@ const getPriceLimits = async (player) => {
     );
   });
 };
+
+export const fetchPricesFromFutBinNew = async (definitionId, refIds, retries) => {
+  return networkCallWithRetry(
+    fetchPricesNew.bind(null, definitionId, refIds),
+    0.5,
+    retries
+  );
+};
+
+const fetchPricesNew = async (definitionId, refIds) => {
+  return new Promise((resolve, reject) => {
+    GM_xmlhttpRequest({
+      method: "GET",
+      url: `https://www.futbin.com/22/playerPrices?player=${definitionId}&rids=${refIds}`,
+      onload: (res) => {
+        if (res.status === 200) {
+          resolve(res);
+        } else {
+          reject(res);
+        }
+      },
+    });
+  });
+};
+
+export const fetchPricesFromFutBinBulk = async (
+  playersIdArray,
+  platform
+) => {
+  let resultJSON;
+  try{
+    const playerIdLookup = new Set(playersIdArray);
+    const playerId = playersIdArray.shift();
+    const refIds = playersIdArray.join(",");
+    const futBinResponse = await fetchPricesFromFutBinNew(playerId, refIds, 5);
+    if (futBinResponse.status === 200) {
+      writeToLog(
+        `futBinResponse.responseText:${futBinResponse.responseText}`,
+        idAutoBuyerFoundLog
+      );
+      resultJSON = JSON.parse(futBinResponse.responseText);
+      const futBinPrices = JSON.parse(res.responseText);
+      //store futbinPrice in repository
+      for (let definitionId of playerIdLookup){
+        let futbinLessPrice =
+          futBinPrices[definitionId] && 
+          parseInt(futBinPrices[definitionId].prices[platform].LCPrice);
+          if (futBinPrices){
+            continue;
+          }
+          const cacheValue = {
+          expiryTimeStamp: new Date(Date.now() + 15 * 60 * 1000),
+          price: futbinLessPrice,
+        };
+        setValue(definitionId, cacheValue);
+      }
+    }else{
+      writeToLog(
+        `= Unable to get Futbin price for err: http fail"
+        }`,
+        idAutoBuyerFoundLog
+      );
+      resultJSON = null;
+    }
+  }catch(err){
+    err = err.statusText || err.status || err;
+    resultJSON = null;
+    writeToLog(
+      `= Unable to get Futbin price for err: ${
+        err || "error occured"
+      }`,
+      idAutoBuyerFoundLog
+    );
+  }
+  return resultJSON;
+};
+
