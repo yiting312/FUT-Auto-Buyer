@@ -70,11 +70,17 @@ export const transferListUtil = function (relistUnsold, minSoldCount) {
 const clearSoldItems = async (soldItems) => {
   services.Item.clearSoldItems().observe(this, function (t, response) {
       if (response.success){
-        writeToDebugLog("clearSoldItems success",idProgressAutobuyer);
-          //refresh clear sor
-          services.Item.refreshAuctions(soldItems).observe(this, function (t, refreshResponse) {});
+        writeToLog(
+          `clearSoldItems success`,
+          idAutoBuyerFoundLog
+        );
+        //refresh clear sor
+        services.Item.refreshAuctions(soldItems).observe(this, function (t, refreshResponse) {});
       }else{
-        writeToDebugLog("clearSoldItems fail",idProgressAutobuyer);
+        writeToLog(
+          `clearSoldItems fail`,
+          idAutoBuyerFoundLog
+        );
       }
   });
 };

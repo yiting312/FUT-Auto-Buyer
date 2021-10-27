@@ -140,11 +140,6 @@ export const watchListUtil = function (buyerSetting) {
                   playersIdArray.splice(0, 30),
                   platform
                 );
-                var jsonString = JSON.stringify(pricesJSON);
-                writeToLog("jsonString:" + jsonString,idAutoBuyerFoundLog);
-
-
-
                 const maxRelistNumber = getValue("maxRelistNumber");
                 let maxReLiNum = maxRelistNumber;
                 writeToLog("maxReLiNum:" + maxReLiNum, idAutoBuyerFoundLog);

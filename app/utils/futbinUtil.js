@@ -141,10 +141,6 @@ export const fetchPricesFromFutBinBulk = async (
     const refIds = playersIdArray.join(",");
     const futBinResponse = await fetchPricesFromFutBinNew(playerId, refIds, 5);
     if (futBinResponse.status === 200) {
-      writeToLog(
-        `futBinResponse.responseText:${futBinResponse.responseText}`,
-        idAutoBuyerFoundLog
-      );
       resultJSON = JSON.parse(futBinResponse.responseText);
       const futBinPrices = JSON.parse(futBinResponse.responseText);
       //store futbinPrice in repository
