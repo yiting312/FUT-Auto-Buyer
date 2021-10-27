@@ -55,8 +55,7 @@ export const watchListUtil = function (buyerSetting) {
                 idAutoBuyerFoundLog
               );
               //start to search for new items
-              if (refreshedActiveItems.length === 0 && maxNewBidNumber > 0){
-              //if (activeItems.length === 0 && maxNewBidNumber > 0){//if activebid is 0 then buy new items
+              if (refreshedActiveItems.length === 0){
                 refreshActionStates(false, true, false);
               }
 
@@ -128,7 +127,7 @@ export const watchListUtil = function (buyerSetting) {
                   return item.getAuctionData().isWon();
                 });
                 writeToLog("boughtItems:" +boughtItems.length, idAutoBuyerFoundLog);
-
+                
 
                 const playersId = new Set();
                 for (let i = boughtItems.length - 1; i >= 0; i--) {
@@ -138,18 +137,22 @@ export const watchListUtil = function (buyerSetting) {
                 const playersIdArray = Array.from(playersId);
                 const platform = getUserPlatform();
                 let pricesJSON = await fetchPricesFromFutBinBulk(
-                  playersIdArray,
+                  playersIdArray.splice(0, 30),
                   platform
                 );
+                var jsonString = JSON.stringify(pricesJSON);
+                writeToLog("jsonString:" + jsonString,idAutoBuyerFoundLog);
+
 
 
                 const maxRelistNumber = getValue("maxRelistNumber");
                 let maxReLiNum = maxRelistNumber;
-                for (var i = 0; i < boughtItems.length; i++) {
+                writeToLog("maxReLiNum:" + maxReLiNum, idAutoBuyerFoundLog);
+                for (let i = boughtItems.length - 1; i >= 0; i--) {
                   if (maxReLiNum < 1){
                     //maxRelistNumber = 0;
                     setValue("maxRelistNumber", 0);
-                    writeToLog("skip relist because transfer list if full", idAutoBuyerFoundLog);
+                    //writeToLog("skip relist because transfer list if full", idAutoBuyerFoundLog);
                     continue;
                   }
                   maxReLiNum--;
