@@ -1,15 +1,22 @@
 import { idProgressAutobuyer } from "../elementIds.constants";
 import { updateStats } from "../handlers/statsProcessor";
-import { writeToLog } from "./logUtil";
+import { getValue, setValue } from "../services/repository";
+import { writeToLog, writeToDebugLog} from "./logUtil";
 import { sendPinEvents } from "./notificationUtil";
 
 export const transferListUtil = function (relistUnsold, minSoldCount) {
   sendPinEvents("Transfer List - List View");
   return new Promise((resolve) => {
     services.Item.requestTransferItems().observe(this, function (t, response) {
+      var maxRelistNumber = getValue("maxRelistNumber");
+      maxRelistNumber = 100 - response.data.items.length;
+      setValue("maxRelistNumber", maxRelistNumber);
       let soldItems = response.data.items.filter(function (item) {
         return item.getAuctionData().isSold();
       }).length;
+      let soldItemsOrigin = response.data.items.filter(function (item) {
+        return item.getAuctionData().isSold();
+      });
       updateStats("soldItems", soldItems);
 
       const unsoldItems = response.data.items.filter(function (item) {
@@ -52,9 +59,22 @@ export const transferListUtil = function (relistUnsold, minSoldCount) {
           "[TRANSFER-LIST] > " + soldItems + " item(s) sold\n",
           idProgressAutobuyer
         );
-        UTTransferListViewController.prototype._clearSold();
+        clearSoldItems(soldItemsOrigin);
+        //UTTransferListViewController.prototype._clearSold();
       }
       resolve();
     });
+  });
+};
+
+const clearSoldItems = async (soldItems) => {
+  services.Item.clearSoldItems().observe(this, function (t, response) {
+      if (response.success){
+        writeToDebugLog("clearSoldItems success",idProgressAutobuyer);
+          //refresh clear sor
+          services.Item.refreshAuctions(soldItems).observe(this, function (t, refreshResponse) {});
+      }else{
+        writeToDebugLog("clearSoldItems fail",idProgressAutobuyer);
+      }
   });
 };

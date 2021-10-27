@@ -35,12 +35,12 @@ export const pauseBotIfRequired = function (buyerSetting) {
   const pauseFor = convertToSeconds(buyerSetting["idAbPauseFor"]) * 1000;
   const cycleAmount = buyerSetting["idAbCycleAmount"];
   const searchCount = getValue("sessionStats").searchCount;
-  if (searchCount && !(searchCount % cycleAmount)) {
-    stopAutoBuyer(true);
-    return setTimeout(() => {
-      startAutoBuyer.call(this, true);
-    }, pauseFor);
-  }
+  // if (searchCount && !(searchCount % cycleAmount)) {
+  //   stopAutoBuyer(true);
+  //   return setTimeout(() => {
+  //     startAutoBuyer.call(this, true);
+  //   }, pauseFor);
+  // }
 };
 
 export const switchFilterIfRequired = async function () {

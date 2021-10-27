@@ -146,7 +146,7 @@ export const fetchPricesFromFutBinBulk = async (
         idAutoBuyerFoundLog
       );
       resultJSON = JSON.parse(futBinResponse.responseText);
-      const futBinPrices = JSON.parse(res.responseText);
+      const futBinPrices = JSON.parse(futBinResponse.responseText);
       //store futbinPrice in repository
       for (let definitionId of playerIdLookup){
         let futbinLessPrice =

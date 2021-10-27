@@ -50,7 +50,7 @@ export const writeToAbLog = (
   result +
   " | " +
   comments;
-  writeToLog(message,idProgressAutobuyer);
+  writeToDebugLog(message,idProgressAutobuyer);
   return message;
 };
 

@@ -9,13 +9,15 @@ import {
   promisifyTimeOut,
   wait,
 } from "./commonUtil";
-import { getSellPriceFromFutBin } from "./futbinUtil";
-import { writeToLog } from "./logUtil";
+import { getSellPriceFromFutBin, fetchPricesFromFutBinBulk } from "./futbinUtil";
+import { writeToDebugLog, writeToLog } from "./logUtil";
 import { sendPinEvents } from "./notificationUtil";
 import { getBuyBidPrice, getSellBidPrice } from "./priceUtils";
 import { buyPlayer } from "./purchaseUtil";
 import { updateProfit } from "./statsUtil";
 import { refreshActionStates } from "../handlers/autobuyerProcessor";
+import { getUserPlatform } from "../utils/userUtil";
+
 
 
 const sellBids = new Set();
@@ -30,15 +32,13 @@ export const watchListUtil = function (buyerSetting) {
       let bidPrice = buyerSetting["idAbMaxBid"];
       let sellPrice = buyerSetting["idAbSellPrice"];
 
+      const maxNewBidNumber = 50 - response.data.items.length;
+      setValue("maxNewBidNumber", maxNewBidNumber);
+
       let activeItems = response.data.items.filter(function (item) {
         return item._auction && item._auction._tradeState === "active";
       });
-
-      //start to search for new items
-      if (activeItems.length === 0){
-      //if (activeItems.length === 0 && window.maxNewBidNumber > 0){//if activebid is 0 then buy new items
-        refreshActionStates(false, true, false);
-      }
+      
 
       services.Item.refreshAuctions(activeItems).observe(
         this,
@@ -46,6 +46,20 @@ export const watchListUtil = function (buyerSetting) {
           services.Item.requestWatchedItems().observe(
             this,
             async function (t, watchResponse) {
+
+              let refreshedActiveItems = response.data.items.filter(function (item) {
+                return item._auction && item._auction._tradeState === "active";
+              });
+              writeToLog(
+                `active watched count ${refreshedActiveItems.length} `,
+                idAutoBuyerFoundLog
+              );
+              //start to search for new items
+              if (refreshedActiveItems.length === 0 && maxNewBidNumber > 0){
+              //if (activeItems.length === 0 && maxNewBidNumber > 0){//if activebid is 0 then buy new items
+                refreshActionStates(false, true, false);
+              }
+
               const isAutoBuyerActive = getValue("autoBuyerActive");
               const filterName = getValue("currentFilter");
               const bidItemsByFilter = getValue("filterBidItems") || new Map();
@@ -66,6 +80,7 @@ export const watchListUtil = function (buyerSetting) {
                   );
                 });
 
+                let futbinPercentNew = getValue("futbinPercentNew");
                 for (var i = 0; i < outBidItems.length; i++) {
                   const currentItem = outBidItems[i];
                   
@@ -75,7 +90,7 @@ export const watchListUtil = function (buyerSetting) {
                     if (!futbinPrice){
                       continue;
                     }
-                    let calculatedPrice = roundOffPrice((funbinPrice * 65) / 100);
+                    let calculatedPrice = roundOffPrice((funbinPrice * futbinPercentNew) / 100);
                     if (!calculatedPrice) {
                       logWrite("skip >>> cant get futbin price");
                       continue;
@@ -103,38 +118,81 @@ export const watchListUtil = function (buyerSetting) {
                 let boughtItems = watchResponse.data.items.filter(function (
                   item
                 ) {
-                  return (
-                    item.getAuctionData().isWon() &&
-                    (!filterName ||
-                      filterWatchList.has(item._auction.tradeId)) &&
-                    !userWatchItems.has(item._auction.tradeId) &&
-                    !sellBids.has(item._auction.tradeId)
-                  );
+                  // return (
+                  //   item.getAuctionData().isWon() &&
+                  //   (!filterName ||
+                  //     filterWatchList.has(item._auction.tradeId)) &&
+                  //   !userWatchItems.has(item._auction.tradeId) &&
+                  //   !sellBids.has(item._auction.tradeId)
+                  // );
+                  return item.getAuctionData().isWon();
                 });
+                writeToLog("boughtItems:" +boughtItems.length, idAutoBuyerFoundLog);
 
+
+                const playersId = new Set();
+                for (let i = boughtItems.length - 1; i >= 0; i--) {
+                  let player = boughtItems[i];
+                  playersId.add(player.definitionId);
+                }
+                const playersIdArray = Array.from(playersId);
+                const platform = getUserPlatform();
+                let pricesJSON = await fetchPricesFromFutBinBulk(
+                  playersIdArray,
+                  platform
+                );
+
+
+                const maxRelistNumber = getValue("maxRelistNumber");
+                let maxReLiNum = maxRelistNumber;
                 for (var i = 0; i < boughtItems.length; i++) {
+                  if (maxReLiNum < 1){
+                    //maxRelistNumber = 0;
+                    setValue("maxRelistNumber", 0);
+                    writeToLog("skip relist because transfer list if full", idAutoBuyerFoundLog);
+                    continue;
+                  }
+                  maxReLiNum--;
                   const player = boughtItems[i];
-                  const ratingThreshold = buyerSetting["idSellRatingThreshold"];
-                  let playerRating = parseInt(player.rating);
-                  const isValidRating =
-                    !ratingThreshold || playerRating <= ratingThreshold;
+                  // const ratingThreshold = buyerSetting["idSellRatingThreshold"];
+                  // let playerRating = parseInt(player.rating);
+                  // const isValidRating =
+                  //   !ratingThreshold || playerRating <= ratingThreshold;
 
-                  if (isValidRating && useFutBinPrice) {
-                    let playerName = formatString(player._staticData.name, 15);
-                    sellPrice = await getSellPriceFromFutBin(
-                      buyerSetting,
-                      playerName,
-                      player
-                    );
+                  // if (isValidRating && useFutBinPrice) {
+                    // let playerName = formatString(player._staticData.name, 15);
+                    // sellPrice = await getSellPriceFromFutBin(
+                    //   buyerSetting,
+                    //   playerName,
+                    //   player
+                    // );
+                  // }
+                  if (!pricesJSON[player.definitionId]) {
+                    writeToLog("skip >>> (can not find futbin price)",idAutoBuyerFoundLog);
+                    continue;
                   }
-
-                  const checkBuyPrice = buyerSetting["idSellCheckBuyPrice"];
-                  if (checkBuyPrice && price > sellPrice) {
-                    sellPrice = -1;
+                  let funbinPrice = parseInt(pricesJSON[player.definitionId].prices[platform].LCPrice);
+                  if (!funbinPrice||(funbinPrice==null)){
+                    writeToLog("skip >>> cant get futbin price",idAutoBuyerFoundLog);
+                    continue;
                   }
+                  sellPrice = funbinPrice;
+                  // let existingValue = getValue(player.definitionId);
+                  // if (existingValue) {
+                  //   let futbinPrice = existingValue.price;
+                  //   if (!futbinPrice){
+                  //     continue;
+                  //   }
+                  //   sellPrice = futbinPrice;
+                  // }
+                  const shouldList = true;
+                  // const checkBuyPrice = buyerSetting["idSellCheckBuyPrice"];
+                  // if (checkBuyPrice && price > sellPrice) {
+                  //   sellPrice = -1;
+                  // }
 
-                  const shouldList =
-                    sellPrice && !isNaN(sellPrice) && isValidRating;
+                  // const shouldList =
+                  //   sellPrice && !isNaN(sellPrice) && isValidRating;
 
                   if (sellPrice < 0) {
                     services.Item.move(player, ItemPile.TRANSFER);
@@ -146,22 +204,10 @@ export const watchListUtil = function (buyerSetting) {
                       buyerSetting["idAbWaitTime"]
                     );
                   } else {
-                    services.Item.move(player, ItemPile.CLUB);
+                    //services.Item.move(player, ItemPile.CLUB);
                   }
 
-                  //lyt sell logic
-                  let existingValue = getValue(player.definitionId);
-                  if (existingValue) {
-                    let futbinPrice = existingValue.price;
-                    if (!futbinPrice){
-                      continue;
-                    }
-                    await sellWonItems(
-                      player,
-                      futbinPrice,
-                      buyerSetting["idAbWaitTime"]
-                    );
-                  }
+                  
                 }
               }
 
@@ -242,6 +288,9 @@ const tryBidItems = async (player, bidPrice, sellPrice, buyerSetting) => {
     );
     await buyPlayer(player, playerName, checkPrice, sellPrice);
     buyerSetting["idAbAddBuyDelay"] && (await wait(1));
+  }else if (isAutoBuyerActive){
+    //currentBid is highter than bid price--should untarget
+    services.Item.untarget(player);
   }
 };
 

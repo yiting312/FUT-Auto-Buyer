@@ -38,12 +38,32 @@ let passInterval = null;
 let isOnlyWatch = true;
 let needTransferList = false;
 let needSearchFutMarket = false;
+let futbinPercentNew = 65;
+let maxNewBidNumber = 3;
+let maxSearchBidNumber = 0;
+let maxRelistNumber = 0;
 const currentBids = new Set();
+
+const findOutMaxNewBidAndMaxRelist = async function (){
+  services.Item.requestTransferItems().observe(this, function (t, response) {
+      maxRelistNumber = 100 - response.data.items.length;
+      setValue("maxRelistNumber", maxRelistNumber);
+      services.Item.requestWatchedItems().observe(this, function (tW, responseW) {
+        maxNewBidNumber = 50 - responseW.data.items.length;
+        setValue("maxNewBidNumber", maxNewBidNumber);
+      });
+  });
+}
 
 export const startAutoBuyer = async function (isResume) {
   $("#" + idAbStatus)
     .css("color", "#2cbe2d")
     .html("RUNNING");
+
+  setValue("futbinPercentNew", futbinPercentNew);  
+  setValue("maxNewBidNumber", maxNewBidNumber);  
+  setValue("maxRelistNumber", maxRelistNumber);  
+
 
   const isActive = getValue("autoBuyerActive");
   if (isActive) return;
@@ -51,6 +71,7 @@ export const startAutoBuyer = async function (isResume) {
   setValue("autoBuyerActive", true);
   setValue("autoBuyerState", "Active");
   if (!isResume) {
+    await findOutMaxNewBidAndMaxRelist();
     setValue("isOnlyWatch", isOnlyWatch);
     setValue("needTransferList", needTransferList);
     setValue("needSearchFutMarket", needSearchFutMarket);
@@ -95,7 +116,7 @@ export const startAutoBuyer = async function (isResume) {
       }else if(needSearchFutMarket){
         sendPinEvents("Hub - Transfers");
         await srchTmWithContext(buyerSetting);
-        refreshActionStates(true, false, false);
+        //refreshActionStates(true, false, false);
       }
     }
   }, ...getRangeValue(buyerSetting["idAbWaitTime"]));
@@ -146,6 +167,14 @@ const searchTransferMarket = function (buyerSetting) {
     const useRandMinBid = buyerSetting["idAbRandMinBidToggle"];
     const useRandMinBuy = buyerSetting["idAbRandMinBuyToggle"];
     let currentPage = getValue("currentPage") || 1;
+    if (currentPage === 1){
+      //reset max bid number per cycle
+      maxNewBidNumber = getValue("maxNewBidNumber");
+      maxSearchBidNumber = maxNewBidNumber;
+    }else{
+      //key count
+      maxSearchBidNumber = maxSearchBidNumber;
+    }
     if (useRandMinBid)
       searchCriteria.minBid = roundOffPrice(
         getRandNum(0, buyerSetting["idAbRandMinBidInput"])
@@ -188,6 +217,7 @@ const searchTransferMarket = function (buyerSetting) {
             increAndGetStoreValue("currentPage");
           } else {
             setValue("currentPage", 1);
+            refreshActionStates(true, false, false);
           }
 
           const playersId = new Set();
@@ -207,7 +237,7 @@ const searchTransferMarket = function (buyerSetting) {
           for (let i = response.data.items.length - 1; i >= 0; i--) {
             let player = response.data.items[i];
             if (!pricesJSON[player.definitionId]) {
-              logWrite("skip >>> (can not find futbin price)");
+              writeToLog("skip >>> (can not find futbin price)",idAutoBuyerFoundLog);
               continue;
             }
             let auction = player._auction;
@@ -245,19 +275,18 @@ const searchTransferMarket = function (buyerSetting) {
             let bidPrice = buyerSetting["idAbMaxBid"];
             let funbinPrice = parseInt(pricesJSON[player.definitionId].prices[platform].LCPrice);
             if (!funbinPrice||(funbinPrice==null)){
-              logWrite("skip >>> cant get futbin price");
+              writeToLog("skip >>> cant get futbin price",idAutoBuyerFoundLog);
               continue;
             }
             //logWrite('skip >>> cant get futbin price${funbinPrice}'+funbinPrice);
-            let calculatedPrice = roundOffPrice((funbinPrice * 65) / 100);
+            let calculatedPrice = roundOffPrice((funbinPrice * futbinPercentNew) / 100);
             if (!calculatedPrice) {
-              logWrite("skip >>> cant get futbin price");
+              writeToLog("skip >>> cant get futbin price",idAutoBuyerFoundLog);
               continue;
             }
             if (bidPrice > calculatedPrice){
               bidPrice = calculatedPrice;
             }
-            
 
             let priceToBid = buyerSetting["idAbBidExact"]
               ? bidPrice
@@ -358,6 +387,13 @@ const searchTransferMarket = function (buyerSetting) {
               logWrite("attempt bid: " + checkPrice);
               currentBids.add(auction.tradeId);
               maxPurchases--;
+              if (maxSearchBidNumber <= 0){
+                refreshActionStates(true, false, false);
+                logWrite("skip >>> (exceed maxSearchBidNumber)");
+                continue;
+              }else{
+                maxSearchBidNumber--;
+              }
               await buyPlayer(
                 player,
                 playerName,
