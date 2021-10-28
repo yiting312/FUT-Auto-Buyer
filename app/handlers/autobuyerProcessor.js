@@ -35,8 +35,8 @@ import { searchErrorHandler } from "./errorHandler";
 
 let interval = null;
 let passInterval = null;
-let isOnlyWatch = true;
-let needTransferList = false;
+let isOnlyWatch = false;
+let needTransferList = true;
 let needSearchFutMarket = false;
 let futbinPercentNew = 65;
 let maxNewBidNumber = 3;
@@ -112,11 +112,11 @@ export const startAutoBuyer = async function (isResume) {
           buyerSetting["idAbSellToggle"],
           buyerSetting["idAbMinDeleteCount"]
         );
+        //go to market
         refreshActionStates(false, false, true);
       }else if(needSearchFutMarket){
         sendPinEvents("Hub - Transfers");
         await srchTmWithContext(buyerSetting);
-        //refreshActionStates(true, false, false);
       }
     }
   }, ...getRangeValue(buyerSetting["idAbWaitTime"]));
@@ -195,10 +195,10 @@ const searchTransferMarket = function (buyerSetting) {
           );
 
           if (response.data.items.length > 0) {
-            writeToLog(
-              "| rating   | player name     | bid    | buy    | time            | action",
-              idAutoBuyerFoundLog
-            );
+            // writeToLog(
+            //   "| rating   | player name     | bid    | buy    | time            | action",
+            //   idAutoBuyerFoundLog
+            // );
             currentPage === 1 &&
               sendPinEvents("Transfer Market Results - List View");
           }
@@ -237,7 +237,7 @@ const searchTransferMarket = function (buyerSetting) {
           for (let i = response.data.items.length - 1; i >= 0; i--) {
             let player = response.data.items[i];
             if (!pricesJSON[player.definitionId]) {
-              writeToLog("skip >>> (can not find futbin price)",idAutoBuyerFoundLog);
+              //writeToLog("skip >>> (can not find futbin price)",idAutoBuyerFoundLog);
               continue;
             }
             let auction = player._auction;
@@ -275,13 +275,12 @@ const searchTransferMarket = function (buyerSetting) {
             let bidPrice = buyerSetting["idAbMaxBid"];
             let funbinPrice = parseInt(pricesJSON[player.definitionId].prices[platform].LCPrice);
             if (!funbinPrice||(funbinPrice==null)){
-              writeToLog("skip >>> cant get futbin price",idAutoBuyerFoundLog);
+              //writeToLog("skip >>> cant get futbin price",idAutoBuyerFoundLog);
               continue;
             }
-            //logWrite('skip >>> cant get futbin price${funbinPrice}'+funbinPrice);
             let calculatedPrice = roundOffPrice((funbinPrice * futbinPercentNew) / 100);
             if (!calculatedPrice) {
-              writeToLog("skip >>> cant get futbin price",idAutoBuyerFoundLog);
+              //writeToLog("skip >>> cant get futbin price",idAutoBuyerFoundLog);
               continue;
             }
             if (bidPrice > calculatedPrice){
@@ -326,32 +325,32 @@ const searchTransferMarket = function (buyerSetting) {
             );
 
             if (!validSearchCount) {
-              logWrite("skip >>> (Exceeded search result threshold)");
+              //logWrite("skip >>> (Exceeded search result threshold)");
               continue;
             }
 
             if (maxPurchases < 1) {
-              logWrite("skip >>> (Exceeded num of buys/bids per search)");
+              //logWrite("skip >>> (Exceeded num of buys/bids per search)");
               continue;
             }
 
             if (!userBuyNowPrice && !bidPrice) {
-              logWrite("skip >>> (No Buy or Bid Price given)");
+              //logWrite("skip >>> (No Buy or Bid Price given)");
               continue;
             }
 
             if (!player.preferredPosition && buyerSetting["idAbAddFilterGK"]) {
-              logWrite("skip >>> (is a Goalkeeper)");
+              //logWrite("skip >>> (is a Goalkeeper)");
               continue;
             }
 
             if (!isValidRating) {
-              logWrite("skip >>> (rating does not fit criteria)");
+              //logWrite("skip >>> (rating does not fit criteria)");
               continue;
             }
 
             if (currentBids.has(auction.tradeId)) {
-              logWrite("skip >>> (Cached Item)");
+              //logWrite("skip >>> (Cached Item)");
               continue;
             }
 
@@ -360,7 +359,7 @@ const searchTransferMarket = function (buyerSetting) {
               userCoins < buyNowPrice ||
               (bidPrice && userCoins < checkPrice)
             ) {
-              logWrite("skip >>> (Insufficient coins to buy/bid)");
+              //logWrite("skip >>> (Insufficient coins to buy/bid)");
               continue;
             }
 
@@ -381,7 +380,7 @@ const searchTransferMarket = function (buyerSetting) {
 
             if (bidPrice && currentBid <= priceToBid) {
               if (auction.expires > expiresIn) {
-                logWrite("skip >>> (Waiting for specified expiry time)");
+                //logWrite("skip >>> (Waiting for specified expiry time)");
                 continue;
               }
               logWrite("attempt bid: " + checkPrice);
@@ -389,7 +388,7 @@ const searchTransferMarket = function (buyerSetting) {
               maxPurchases--;
               if (maxSearchBidNumber <= 0){
                 refreshActionStates(true, false, false);
-                logWrite("skip >>> (exceed maxSearchBidNumber)");
+                //logWrite("skip >>> (exceed maxSearchBidNumber)");
                 continue;
               }else{
                 maxSearchBidNumber--;
@@ -409,11 +408,11 @@ const searchTransferMarket = function (buyerSetting) {
               (userBuyNowPrice && buyNowPrice > userBuyNowPrice) ||
               (bidPrice && currentBid > priceToBid)
             ) {
-              logWrite("skip >>> (higher than specified buy/bid price)");
+              //logWrite("skip >>> (higher than specified buy/bid price)");
               continue;
             }
 
-            logWrite("skip >>> (No Actions Required)");
+            //logWrite("skip >>> (No Actions Required)");
           }
           if (auctionPrices.length && auctionPrices.length < 12) {
             trackMarketPrices(auctionPrices);

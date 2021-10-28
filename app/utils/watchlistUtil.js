@@ -54,10 +54,7 @@ export const watchListUtil = function (buyerSetting) {
                 `active watched count ${refreshedActiveItems.length} `,
                 idAutoBuyerFoundLog
               );
-              //start to search for new items
-              if (refreshedActiveItems.length === 0){
-                refreshActionStates(false, true, false);
-              }
+              
 
               const isAutoBuyerActive = getValue("autoBuyerActive");
               const filterName = getValue("currentFilter");
@@ -91,7 +88,7 @@ export const watchListUtil = function (buyerSetting) {
                     }
                     let calculatedPrice = roundOffPrice((funbinPrice * futbinPercentNew) / 100);
                     if (!calculatedPrice) {
-                      logWrite("skip >>> cant get futbin price");
+                      writeToLog("skip >>> cant get futbin price", idAutoBuyerFoundLog);
                       continue;
                     }
                     if (bidPrice > calculatedPrice){
@@ -204,8 +201,6 @@ export const watchListUtil = function (buyerSetting) {
                   } else {
                     //services.Item.move(player, ItemPile.CLUB);
                   }
-
-                  
                 }
               }
 
@@ -213,17 +208,29 @@ export const watchListUtil = function (buyerSetting) {
                 var t = item.getAuctionData();
                 return t.isExpired() || (t.isClosedTrade() && !t.isWon());
               });
-
               if (expiredItems.length) {
-                services.Item.untarget(expiredItems);
-                writeToLog(
-                  `Found ${expiredItems.length} expired items and removed from watchlist`,
-                  idAutoBuyerFoundLog
-                );
+                await unWatchPlayers(expiredItems);
               }
-              
 
               services.Item.clearTransferMarketCache();
+              //start to search for new items
+              let boughtItems = watchResponse.data.items.filter(function (
+                item
+              ) {
+                return item.getAuctionData().isWon();
+              });
+              writeToLog("refreshedActiveItems:" +refreshedActiveItems.length, idAutoBuyerFoundLog);
+              if (refreshedActiveItems.length === 0){
+                if (boughtItems.length > 0){
+                  //not sell out yet-refresh translist
+                  refreshActionStates(false, true, false);
+                }else{
+                  //sold out go market
+                  refreshActionStates(false, false, true);
+                }
+
+                
+              }
               resolve();
             }
           );
@@ -232,6 +239,25 @@ export const watchListUtil = function (buyerSetting) {
     });
   });
 };
+
+async function unWatchPlayers(players){
+  return new Promise((resolve) => {
+    services.Item.untarget(players).observe(this, function(t, response){
+      if (response.success){
+        writeToLog(
+          `Found ${players.length} expired items and removed from watchlist`,
+          idAutoBuyerFoundLog
+        );
+      }else{
+        writeToLog(
+          `untarget ${players.length} failed`,
+          idAutoBuyerFoundLog
+        );
+      }
+      resolve();
+    });
+  });
+}
 
 export const addUserWatchItems = () => {
   return new Promise((resolve, reject) => {
