@@ -17,6 +17,8 @@ import { buyPlayer } from "./purchaseUtil";
 import { updateProfit } from "./statsUtil";
 import { refreshActionStates } from "../handlers/autobuyerProcessor";
 import { getUserPlatform } from "../utils/userUtil";
+import { updateStats } from "../handlers/statsProcessor";
+
 
 
 
@@ -54,7 +56,8 @@ export const watchListUtil = function (buyerSetting) {
                 `active watched count ${refreshedActiveItems.length} `,
                 idAutoBuyerFoundLog
               );
-              
+              updateStats("watchActive", refreshedActiveItems.length);
+
 
               const isAutoBuyerActive = getValue("autoBuyerActive");
               const filterName = getValue("currentFilter");
@@ -147,7 +150,7 @@ export const watchListUtil = function (buyerSetting) {
                     //writeToLog("skip relist because transfer list if full", idAutoBuyerFoundLog);
                     continue;
                   }
-                  maxReLiNum--;
+                  
                   const player = boughtItems[i];
                   // const ratingThreshold = buyerSetting["idSellRatingThreshold"];
                   // let playerRating = parseInt(player.rating);
@@ -189,8 +192,9 @@ export const watchListUtil = function (buyerSetting) {
                   // const shouldList =
                   //   sellPrice && !isNaN(sellPrice) && isValidRating;
 
-                  if (sellPrice < 0) {
-                    services.Item.move(player, ItemPile.TRANSFER);
+                  if (sellPrice < 50) {
+                    writeToLog("skip >>> can not get futbin price it is less than 50",idAutoBuyerFoundLog);
+                    //services.Item.move(player, ItemPile.TRANSFER);
                   } else if (shouldList) {
                     updateProfit(sellPrice * 0.95 - player._auction.currentBid);
                     await sellWonItems(
@@ -198,6 +202,7 @@ export const watchListUtil = function (buyerSetting) {
                       sellPrice,
                       buyerSetting["idAbWaitTime"]
                     );
+                    maxReLiNum--;
                   } else {
                     //services.Item.move(player, ItemPile.CLUB);
                   }
@@ -219,6 +224,7 @@ export const watchListUtil = function (buyerSetting) {
               ) {
                 return item.getAuctionData().isWon();
               });
+              updateStats("watchWon", boughtItems.length);
               writeToLog("refreshedActiveItems:" +refreshedActiveItems.length, idAutoBuyerFoundLog);
               if (refreshedActiveItems.length === 0){
                 if (boughtItems.length > 0){

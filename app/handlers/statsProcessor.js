@@ -4,6 +4,8 @@ import {
   idAbCoins,
   idAbProfit,
   idAbRequestCount,
+  idAbWatchActive,
+  idAbWatchWon,
   idAbSearchProgress,
   idAbSoldItems,
   idAbStatisticsProgress,
@@ -18,6 +20,8 @@ setValue("sessionStats", {
   unsoldItems: "-",
   activeTransfers: "-",
   availableItems: "-",
+  watchWon: "-",
+  watchActive: "-",
   coins: "-",
   coinsNumber: 0,
   searchCount: 0,
@@ -32,6 +36,9 @@ export const statsProcessor = () => {
     const currentStats = getValue("sessionStats");
     $("#" + idAbSearchProgress).css("width", nextRefresh);
     $("#" + idAbStatisticsProgress).css("width", nextRefresh);
+    
+    $("#" + idAbWatchActive).html(currentStats.watchActive);
+    $("#" + idAbWatchWon).html(currentStats.watchWon);
 
     $("#" + idAbCoins).html(currentStats.coins);
     $("#" + idAbRequestCount).html(currentStats.searchCount);

@@ -1,5 +1,5 @@
 import { errorCodeLookUp } from "../app.constants";
-import { idProgressAutobuyer } from "../elementIds.constants";
+import { idProgressAutobuyer, idAutoBuyerFoundLog} from "../elementIds.constants";
 import { stopAutoBuyer } from "../handlers/autobuyerProcessor";
 import {
   getValue,
@@ -105,14 +105,15 @@ export const buyPlayer = (
           } else {
             let bidCount = increAndGetStoreValue("bidCount");
             let sym = " B:" + formatString(bidCount.toString(), 4);
-            logMessage = writeToAbLog(
-              sym,
-              playerName,
-              priceTxt,
-              "bid",
-              "success",
-              "waiting to expire"
-            );
+            // logMessage = writeToAbLog(
+            //   sym,
+            //   playerName,
+            //   priceTxt,
+            //   "bid",
+            //   "success",
+            //   "waiting to expire"
+            // );
+            logMessage = writeToLog(sym + " | " + playerName + " | " + priceTxt +"bid | success | waiting to expire",idAutoBuyerFoundLog);
             const filterName = getValue("currentFilter");
             if (filterName) {
               const bidItemsByFilter = getValue("filterBidItems") || new Map();
