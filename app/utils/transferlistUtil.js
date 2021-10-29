@@ -64,7 +64,7 @@ export const transferListUtil = function (relistUnsold, minSoldCount) {
         // const platform = getUserPlatform();
         // const playersIdArray = Array.from(playersId);
         // let pricesJSON = await fetchPricesFromFutBinBulk(
-        //   playersIdArray,
+        //   playersIdArray.splice(0, 30),
         //   platform
         // );
 
@@ -120,7 +120,7 @@ export const transferListUtil = function (relistUnsold, minSoldCount) {
         const platform = getUserPlatform();
         const playersIdArray = Array.from(playersId);
         let pricesJSON = await fetchPricesFromFutBinBulk(
-          playersIdArray,
+          playersIdArray.splice(0, 30),
           platform
         );
 

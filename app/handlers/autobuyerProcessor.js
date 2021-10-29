@@ -227,7 +227,7 @@ const searchTransferMarket = function (buyerSetting) {
           }
           const playersIdArray = Array.from(playersId);
           let pricesJSON = await fetchPricesFromFutBinBulk(
-            playersIdArray,
+            playersIdArray.splice(0, 30),
             platform
           );
           
