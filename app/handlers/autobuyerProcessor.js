@@ -278,6 +278,10 @@ const searchTransferMarket = function (buyerSetting) {
               //writeToLog("skip >>> cant get futbin price",idAutoBuyerFoundLog);
               continue;
             }
+            if (funbinPrice > buyNowPrice){
+              //writeToLog("skip >>> cant get futbin price",idAutoBuyerFoundLog);
+              continue;
+            }
             let calculatedPrice = roundOffPrice((funbinPrice * futbinPercentNew) / 100);
             if (!calculatedPrice) {
               //writeToLog("skip >>> cant get futbin price",idAutoBuyerFoundLog);
