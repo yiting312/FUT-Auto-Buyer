@@ -16,8 +16,11 @@ import { getBuyBidPrice, getSellBidPrice } from "./priceUtils";
 
 export const transferListUtil = function (relistUnsold, minSoldCount) {
   sendPinEvents("Transfer List - List View");
+  writeToLog("transferListUtil", idAutoBuyerFoundLog);
   return new Promise((resolve) => {
     services.Item.requestTransferItems().observe(this, async function (t, response) {
+      writeToLog("transferListUtil response.data.items.length:" + response.data.items.length, idAutoBuyerFoundLog);
+
       var maxRelistNumber = getValue("maxRelistNumber");
       maxRelistNumber = 100 - response.data.items.length;
       setValue("maxRelistNumber", maxRelistNumber);
@@ -174,7 +177,7 @@ const relistExpiredItemsWithoutChange = (unsoldItemsOrigin) => {
       this, function (t, response) {
         if (response.success) {
           writeToLog("relistExpiredAuctions success:", idAutoBuyerFoundLog);
-          UTTransferListViewController.prototype.refreshList();
+          //UTTransferListViewController.prototype.refreshList();
           //services.Item.refreshAuctions(unsoldItemsOrigin).observe(this, function (t, refreshResponse) { });
         } else {
           writeToLog("relistExpiredAuctions fail:", idAutoBuyerFoundLog);

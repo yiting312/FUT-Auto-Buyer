@@ -126,8 +126,20 @@ export const watchListUtil = function (buyerSetting) {
                   // );
                   return item.getAuctionData().isWon();
                 });
-                writeToLog("boughtItems:" +boughtItems.length, idAutoBuyerFoundLog);
                 
+                updateStats("watchWon", boughtItems.length);
+                writeToLog("refreshedActiveItems:" +refreshedActiveItems.length, idAutoBuyerFoundLog);
+                writeToLog("boughtItems:" +boughtItems.length, idAutoBuyerFoundLog);
+
+                if (refreshedActiveItems.length === 0){
+                  if (boughtItems.length > 0){
+                    //not sell out yet-refresh translist
+                    refreshActionStates(false, true, false);
+                  }else{
+                    //sold out go market
+                    refreshActionStates(false, false, true);
+                  }
+                }
 
                 const playersId = new Set();
                 for (let i = boughtItems.length - 1; i >= 0; i--) {
@@ -226,19 +238,7 @@ export const watchListUtil = function (buyerSetting) {
               ) {
                 return item.getAuctionData().isWon();
               });
-              updateStats("watchWon", boughtItems.length);
-              writeToLog("refreshedActiveItems:" +refreshedActiveItems.length, idAutoBuyerFoundLog);
-              if (refreshedActiveItems.length === 0){
-                if (boughtItems.length > 0){
-                  //not sell out yet-refresh translist
-                  refreshActionStates(false, true, false);
-                }else{
-                  //sold out go market
-                  refreshActionStates(false, false, true);
-                }
-
-                
-              }
+              
               resolve();
             }
           );
