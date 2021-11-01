@@ -2,3 +2,4 @@
 node_modules
 dist
 app/aws-exports.js
+.DS_Store

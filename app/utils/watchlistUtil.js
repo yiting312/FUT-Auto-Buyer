@@ -207,7 +207,9 @@ export const watchListUtil = function (buyerSetting) {
                     //services.Item.move(player, ItemPile.CLUB);
                   }
                 }
+                setValue("maxRelistNumber", maxReLiNum);
               }
+              
 
               let expiredItems = watchResponse.data.items.filter((item) => {
                 var t = item.getAuctionData();

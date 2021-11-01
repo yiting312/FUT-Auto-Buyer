@@ -56,45 +56,45 @@ export const transferListUtil = function (relistUnsold, minSoldCount) {
       writeToLog("unsoldItems:" + unsoldItems, idAutoBuyerFoundLog);
       //if (unsoldItems && relistUnsold){
       if (unsoldItems){
-        const playersId = new Set();
-        for (let i = unsoldItems - 1; i >= 0; i--) {
-          let player = unsoldItemsOrigin[i];
-          playersId.add(player.definitionId);
-        }
-        const platform = getUserPlatform();
-        const playersIdArray = Array.from(playersId);
-        let pricesJSON = await fetchPricesFromFutBinBulk(
-          playersIdArray.splice(0, 30),
-          platform
-        );
+        // const playersId = new Set();
+        // for (let i = unsoldItems - 1; i >= 0; i--) {
+        //   let player = unsoldItemsOrigin[i];
+        //   playersId.add(player.definitionId);
+        // }
+        // const platform = getUserPlatform();
+        // const playersIdArray = Array.from(playersId);
+        // let pricesJSON = await fetchPricesFromFutBinBulk(
+        //   playersIdArray.splice(0, 30),
+        //   platform
+        // );
 
         
-        for (let i = unsoldItems - 1; i >= 0; i--) {
-          let sellPrice = 0;
-          const player = unsoldItemsOrigin[i];
-          if (!pricesJSON[player.definitionId]) {
-            //writeToLog("skip >>> (can not find futbin price)",idAutoBuyerFoundLog);
-            continue;
-          }
-          let funbinPrice = parseInt(pricesJSON[player.definitionId].prices[platform].LCPrice);
-          if (!funbinPrice || (funbinPrice == null)) {
-            //writeToLog("skip >>> cant get futbin price",idAutoBuyerFoundLog);
-            continue;
-          }
-          sellPrice = funbinPrice;
-          const shouldList = true;
-          if (sellPrice < 0) {
-            //services.Item.move(player, ItemPile.TRANSFER);
-          } else if (shouldList) {
-            await sellWonItems(
-              player,
-              sellPrice
-            );
-          } else {
-            //services.Item.move(player, ItemPile.CLUB);
-          }
-        }
-        // await relistExpiredItemsWithoutChange(unsoldItemsOrigin);
+        // for (let i = unsoldItems - 1; i >= 0; i--) {
+        //   let sellPrice = 0;
+        //   const player = unsoldItemsOrigin[i];
+        //   if (!pricesJSON[player.definitionId]) {
+        //     //writeToLog("skip >>> (can not find futbin price)",idAutoBuyerFoundLog);
+        //     continue;
+        //   }
+        //   let funbinPrice = parseInt(pricesJSON[player.definitionId].prices[platform].LCPrice);
+        //   if (!funbinPrice || (funbinPrice == null)) {
+        //     //writeToLog("skip >>> cant get futbin price",idAutoBuyerFoundLog);
+        //     continue;
+        //   }
+        //   sellPrice = funbinPrice;
+        //   const shouldList = true;
+        //   if (sellPrice < 0) {
+        //     //services.Item.move(player, ItemPile.TRANSFER);
+        //   } else if (shouldList) {
+        //     await sellWonItems(
+        //       player,
+        //       sellPrice
+        //     );
+        //   } else {
+        //     //services.Item.move(player, ItemPile.CLUB);
+        //   }
+        // }
+        await relistExpiredItemsWithoutChange(unsoldItemsOrigin);
       }
 
       const activeTransfers = response.data.items.filter(function (item) {
