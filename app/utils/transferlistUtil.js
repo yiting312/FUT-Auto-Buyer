@@ -140,7 +140,14 @@ export const transferListUtil = function (relistUnsold, minSoldCount) {
             //writeToLog("skip >>> cant get futbin price",idAutoBuyerFoundLog);
             continue;
           }
-          sellPrice = funbinPrice;
+          let rightPrice = 500;
+          rightPrice = Math.max(rightPrice, funbinPrice);
+          if ((rightPrice * 0.95 - player.lastSalePrice) < 50) {
+            rightPrice = player.lastSalePrice + 100;
+          }
+          sellPrice = rightPrice;
+          
+          //sellPrice = funbinPrice;
           const shouldList = true;
           if (sellPrice < 0) {
             //services.Item.move(player, ItemPile.TRANSFER);

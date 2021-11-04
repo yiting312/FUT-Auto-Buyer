@@ -186,7 +186,14 @@ export const watchListUtil = function (buyerSetting) {
                     writeToLog("skip >>> cant get futbin price",idAutoBuyerFoundLog);
                     continue;
                   }
-                  sellPrice = funbinPrice;
+                  //get right sell price
+                  let rightPrice = 500;
+                  rightPrice = Math.max(rightPrice, futbinPrice);
+                  if ((rightPrice * 0.95 - player.auction.currentBid) < 50){
+                    rightPrice = player.auction.currentBid + 100;
+                  }
+                  sellPrice = rightPrice;
+                  
                   // let existingValue = getValue(player.definitionId);
                   // if (existingValue) {
                   //   let futbinPrice = existingValue.price;
