@@ -89,7 +89,7 @@ export const watchListUtil = function (buyerSetting) {
                     if (!futbinPrice){
                       continue;
                     }
-                    let calculatedPrice = roundOffPrice((funbinPrice * futbinPercentNew) / 100);
+                    let calculatedPrice = roundOffPrice((futbinPrice * futbinPercentNew) / 100);
                     if (!calculatedPrice) {
                       writeToLog("skip >>> cant get futbin price", idAutoBuyerFoundLog);
                       continue;
@@ -181,16 +181,19 @@ export const watchListUtil = function (buyerSetting) {
                     writeToLog("skip >>> (can not find futbin price)",idAutoBuyerFoundLog);
                     continue;
                   }
-                  let funbinPrice = parseInt(pricesJSON[player.definitionId].prices[platform].LCPrice);
-                  if (!funbinPrice||(funbinPrice==null)){
+                  let futbinPrice = parseInt(pricesJSON[player.definitionId].prices[platform].LCPrice);
+                  if (!futbinPrice||(futbinPrice==null)){
                     writeToLog("skip >>> cant get futbin price",idAutoBuyerFoundLog);
                     continue;
                   }
                   //get right sell price
                   let rightPrice = 500;
                   rightPrice = Math.max(rightPrice, futbinPrice);
-                  if ((rightPrice * 0.95 - player.auction.currentBid) < 50){
-                    rightPrice = player.auction.currentBid + 100;
+                  //let playerJSON = JSON.stringify(player);
+                  //writeToLog("playerJSON" + playerJSON,idAutoBuyerFoundLog);
+
+                  if ((rightPrice * 0.95 - player._auction.currentBid) < 50){
+                    rightPrice = player._auction.currentBid + 100;
                   }
                   sellPrice = rightPrice;
                   
