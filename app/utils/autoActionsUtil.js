@@ -21,10 +21,10 @@ export const stopBotIfRequired = (buyerSetting) => {
   let timeElapsed = (currentTime - botStartTime) / 1000;
 
   if (timeElapsed >= time || (cardsToBuy && purchasedCardCount >= cardsToBuy)) {
-    if(sendDetailedNotification)
-      sendNotificationToUser(`Autbuyer stopped | ${
-        timeElapsed ? "Time elapsed" : "Max pruchases count reached"
-      }`);
+    // if(sendDetailedNotification)
+    //   sendNotificationToUser(`Autbuyer stopped | ${
+    //     timeElapsed ? "Time elapsed" : "Max pruchases count reached"
+    //   }`);
     stopAutoBuyer();
   }
 };

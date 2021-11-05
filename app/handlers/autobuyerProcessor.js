@@ -122,6 +122,8 @@ export const startAutoBuyer = async function (isResume) {
   }, ...getRangeValue(buyerSetting["idAbWaitTime"]));
 };
 
+
+
 export const refreshActionStates = function (watchAction, transferAction, searchFutAction) {
   isOnlyWatch = watchAction;
   needTransferList = transferAction;

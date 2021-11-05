@@ -27,11 +27,21 @@ export const sendNotificationToUser = (message, isTestMessage) => {
 };
 
 const sendNotificationToExternal = (buyerSetting, message) => {
-  let telegramToken = buyerSetting["idTelegramBotToken"];
+  let telegramToken = buyerSetting["idTelegramBotToken"];//server jiang token
   let telegramChatId = buyerSetting["idTelegramChatId"];
   let channelId = buyerSetting["idDiscordChannelId"];
-  sendMessageToTelegram(telegramToken, telegramChatId, message);
-  sendMessageToDiscord(channelId, message);
+  //sendMessageToTelegram(telegramToken, telegramChatId, message);
+  //sendMessageToDiscord(channelId, message);
+  sendMessageToServerJiang(telegramToken, message);
+};
+
+const sendMessageToServerJiang = (telegramToken, message) => {
+  if (telegramToken) {
+    let url = `https://sctapi.ftqq.com/${telegramToken}.send?title=${message}`;
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("GET", url, true);
+    xhttp.send();
+  }
 };
 
 const sendMessageToTelegram = (telegramToken, telegramChatId, message) => {

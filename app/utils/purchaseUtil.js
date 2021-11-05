@@ -127,11 +127,11 @@ export const buyPlayer = (
           }
 
           if (notificationType === "B" || notificationType === "A") {
-            if (sendDetailedNotification) sendNotificationToUser(logMessage);
-            else
-              sendNotificationToUser(
-                `|  ${playerName.trim()}  | ${priceTxt.trim()} | buy |`
-              );
+            // if (sendDetailedNotification) sendNotificationToUser(logMessage);
+          }else{
+              // sendNotificationToUser(
+              //   `|  ${playerName.trim()}  | ${priceTxt.trim()} | buy |`
+              // );
           }
         } else {
           let lossCount = increAndGetStoreValue("lossCount");
@@ -146,11 +146,11 @@ export const buyPlayer = (
             " ERR: " + (errorCodeLookUp[status] || status)
           );
           if (notificationType === "L" || notificationType === "A") {
-            if (sendDetailedNotification) sendNotificationToUser(logMessage);
-            else
-              sendNotificationToUser(
-                `| ${playerName.trim()} | ${priceTxt.trim()} | failure |`
-              );
+            // if (sendDetailedNotification) sendNotificationToUser(logMessage);
+          }else{
+              // sendNotificationToUser(
+              //   `| ${playerName.trim()} | ${priceTxt.trim()} | failure |`
+              // );
           }
 
           if (buyerSetting["idAbStopErrorCode"]) {
