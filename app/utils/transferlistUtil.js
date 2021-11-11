@@ -10,6 +10,8 @@ import {
 import { getSellPriceFromFutBin, fetchPricesFromFutBinBulk } from "./futbinUtil";
 import { getUserPlatform } from "../utils/userUtil";
 import { getBuyBidPrice, getSellBidPrice } from "./priceUtils";
+import { refreshActionStates } from "../handlers/autobuyerProcessor";
+
 
 
 
@@ -172,6 +174,15 @@ export const transferListUtil = function (relistUnsold, minSoldCount) {
         );
         await clearSoldItems(soldItemsOrigin);
         //UTTransferListViewController.prototype._clearSold();
+      }
+
+      //decide where to go 
+      if (shouldClearSold && (response.data.items.length == 100)){
+        //stay in transfer list
+        refreshActionStates(false, true, false);
+      }else{
+        //go to market
+        refreshActionStates(false, false, true);
       }
       resolve();
     });

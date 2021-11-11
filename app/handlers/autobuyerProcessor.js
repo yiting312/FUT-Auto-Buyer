@@ -112,8 +112,6 @@ export const startAutoBuyer = async function (isResume) {
           buyerSetting["idAbSellToggle"],
           buyerSetting["idAbMinDeleteCount"]
         );
-        //go to market
-        refreshActionStates(false, false, true);
       }else if(needSearchFutMarket){
         sendPinEvents("Hub - Transfers");
         await srchTmWithContext(buyerSetting);
