@@ -177,7 +177,8 @@ export const transferListUtil = function (relistUnsold, minSoldCount) {
       }
 
       //decide where to go 
-      if (shouldClearSold && (response.data.items.length == 100)){
+      //if (shouldClearSold && (response.data.items.length == 100)){
+      if (shouldClearSold){
         //stay in transfer list
         refreshActionStates(false, true, false);
       }else{
