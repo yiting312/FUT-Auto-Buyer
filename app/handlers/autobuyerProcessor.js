@@ -274,19 +274,34 @@ const searchTransferMarket = function (buyerSetting) {
 
             let bidPrice = buyerSetting["idAbMaxBid"];
             let funbinPrice = parseInt(pricesJSON[player.definitionId].prices[platform].LCPrice);
+
             if (!funbinPrice||(funbinPrice==null)){
               //writeToLog("skip >>> cant get futbin price",idAutoBuyerFoundLog);
               continue;
             }
+            if (funbinPrice < 550){
+              writeToLog("skip >>> futbin price is too low",idAutoBuyerFoundLog);
+              continue;
+            }
             if (funbinPrice > buyNowPrice){
-              //writeToLog("skip >>> cant get futbin price",idAutoBuyerFoundLog);
+              //writeToLog("skip >>> futbinPrice is overpriced",idAutoBuyerFoundLog);
               continue;
             }
             let calculatedPrice = roundOffPrice((funbinPrice * futbinPercentNew) / 100);
             if (!calculatedPrice) {
-              //writeToLog("skip >>> cant get futbin price",idAutoBuyerFoundLog);
+              //writeToLog("skip >>> cant get calculatedPrice",idAutoBuyerFoundLog);
               continue;
             }
+
+            let leagueId = Number(player.leagueId);
+            let leagueArray = [16, 10, 39,19,13,341,350];
+            let leagueIndex = leagueArray.indexOf(leagueId);
+            //console.log("leagueId:" + leagueId + "index:" + index);
+            if (leagueIndex < 0){
+              writeToLog("skip >>> the item is not in certain league",idAutoBuyerFoundLog);
+              continue;
+            }
+
             if (bidPrice > calculatedPrice){
               bidPrice = calculatedPrice;
             }
