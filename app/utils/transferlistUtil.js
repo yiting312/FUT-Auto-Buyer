@@ -100,6 +100,8 @@ export const transferListUtil = function (relistUnsold, minSoldCount) {
         //   }
         // }
         await relistExpiredItemsWithoutChange(unsoldItemsOrigin);
+
+        //await relistExpiredItemsWithoutChangeOneByOne(unsoldItemsOrigin);
       }
 
       const activeTransfers = response.data.items.filter(function (item) {
@@ -183,12 +185,37 @@ export const transferListUtil = function (relistUnsold, minSoldCount) {
         refreshActionStates(false, true, false);
       }else{
         //go to market
+        setValue("currentPage", 1);
         refreshActionStates(false, false, true);
       }
       resolve();
     });
   });
 };
+
+const relistExpiredItemsWithoutChangeOneByOne = (unsoldItemsOrigin) =>{
+  return new Promise ((resolve)=>{
+    setValue("lock", true);
+    let listNum = 1;
+    for (let i = 0; i < unsoldItemsOrigin.length; i++){
+      setTimeout(function () {
+        let playerX = unsoldItemsOrigin[i];
+        let player_nameX = formatString(playerX._staticData.name, 15);;
+        let sellPriceX = playerX.lastSalePrice;
+        writeToLog("relist  |  " + player_nameX + "  |  " + sellPriceX + "  |  " + listNum, idAutoBuyerFoundLog);
+        services.Item.list(playerX, getSellBidPrice(sellPriceX), sellPriceX, 3600);
+        if (i == unsoldItemsOrigin.length - 1){
+          //should release the lock
+          setValue("lock", false);
+        }
+      }, 2000 * listNum);	// 还是每秒执行一次，不是累加的
+      if (i === unsoldItemsOrigin.length){
+        resolve();
+      }
+      listNum++;
+    }
+  });
+}
 
 const relistExpiredItemsWithoutChange = (unsoldItemsOrigin) => {
   return new Promise((resolve)=>{

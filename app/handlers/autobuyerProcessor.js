@@ -96,11 +96,13 @@ export const startAutoBuyer = async function (isResume) {
   //   buyerSetting["idAbMinDeleteCount"],
   //   true
   // );
+  setValue("lock", false);
   interval = setRandomInterval(async () => {
     passInterval = pauseBotWithContext(buyerSetting);
     stopBotIfRequired(buyerSetting);
     const isBuyerActive = getValue("autoBuyerActive");
-    if (isBuyerActive) {
+    let lock = getValue("lock");
+    if (isBuyerActive && !lock) {
       await switchFilterWithContext();
       buyerSetting = getValue("BuyerSettings");
       if (isOnlyWatch){
@@ -174,6 +176,12 @@ const searchTransferMarket = function (buyerSetting) {
     }else{
       //key count
       maxSearchBidNumber = maxSearchBidNumber;
+    }
+    if (maxSearchBidNumber <= 0){
+      setValue("currentPage", 1);
+      refreshActionStates(true, false, false);
+      //logWrite("skip >>> (exceed maxSearchBidNumber)");
+      //continue;
     }
     if (useRandMinBid)
       searchCriteria.minBid = roundOffPrice(
@@ -280,7 +288,7 @@ const searchTransferMarket = function (buyerSetting) {
               continue;
             }
             if (funbinPrice < 550){
-              writeToLog("skip >>> futbin price is too low",idAutoBuyerFoundLog);
+              //writeToLog("skip >>> futbin price is too low",idAutoBuyerFoundLog);
               continue;
             }
             if (funbinPrice > buyNowPrice){
@@ -406,6 +414,7 @@ const searchTransferMarket = function (buyerSetting) {
               currentBids.add(auction.tradeId);
               maxPurchases--;
               if (maxSearchBidNumber <= 0){
+                setValue("currentPage", 1);
                 refreshActionStates(true, false, false);
                 //logWrite("skip >>> (exceed maxSearchBidNumber)");
                 continue;

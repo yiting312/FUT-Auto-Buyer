@@ -137,6 +137,7 @@ export const watchListUtil = function (buyerSetting) {
                     refreshActionStates(false, true, false);
                   }else{
                     //sold out go market
+                    setValue("currentPage", 1);
                     refreshActionStates(false, false, true);
                   }
                 }
