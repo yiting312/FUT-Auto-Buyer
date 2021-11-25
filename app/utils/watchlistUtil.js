@@ -34,7 +34,7 @@ export const watchListUtil = function (buyerSetting) {
       let bidPrice = buyerSetting["idAbMaxBid"];
       let sellPrice = buyerSetting["idAbSellPrice"];
 
-      const maxNewBidNumber = 5 - response.data.items.length;
+      const maxNewBidNumber = 10 - response.data.items.length;
       setValue("maxNewBidNumber", maxNewBidNumber);
 
       let activeItems = response.data.items.filter(function (item) {

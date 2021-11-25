@@ -198,23 +198,31 @@ const relistExpiredItemsWithoutChangeOneByOne = (unsoldItemsOrigin) =>{
     setValue("lock", true);
     let listNum = 1;
     for (let i = 0; i < unsoldItemsOrigin.length; i++){
-      setTimeout(function () {
-        let playerX = unsoldItemsOrigin[i];
-        let player_nameX = formatString(playerX._staticData.name, 15);;
-        let sellPriceX = playerX.lastSalePrice;
-        writeToLog("relist  |  " + player_nameX + "  |  " + sellPriceX + "  |  " + listNum, idAutoBuyerFoundLog);
-        services.Item.list(playerX, getSellBidPrice(sellPriceX), sellPriceX, 3600);
-        if (i == unsoldItemsOrigin.length - 1){
-          //should release the lock
-          setValue("lock", false);
-        }
-      }, 2000 * listNum);	// 还是每秒执行一次，不是累加的
-      if (i === unsoldItemsOrigin.length){
+      let playerX = unsoldItemsOrigin[i];
+      let needLock = true;
+      if (i === unsoldItemsOrigin.length - 1){
+        needLock = false;
+      }
+      sellOneWithoutChange(listNum, playerX, needLock);
+      if (i === unsoldItemsOrigin.length - 1){
         resolve();
       }
       listNum++;
     }
   });
+}
+
+const sellOneWithoutChange = function (listNum, playerX, needLock) {
+  setTimeout(function () {
+    let player_nameX = formatString(playerX._staticData.name, 15);
+    let sellPriceX = playerX._auction.buyNowPrice;
+    writeToLog("relist  |  " + player_nameX + "  |  " + sellPriceX + "  |  " + listNum, idAutoBuyerFoundLog);
+    services.Item.list(playerX, getSellBidPrice(sellPriceX), sellPriceX, 3600);
+    if (!needLock){
+      //should release the lock
+      setValue("lock", false);
+    }
+  }, 2000 * listNum);	// 还是每秒执行一次，不是累加的
 }
 
 const relistExpiredItemsWithoutChange = (unsoldItemsOrigin) => {
