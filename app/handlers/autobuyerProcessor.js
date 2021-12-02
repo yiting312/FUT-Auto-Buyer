@@ -49,7 +49,7 @@ const findOutMaxNewBidAndMaxRelist = async function (){
       maxRelistNumber = 100 - response.data.items.length;
       setValue("maxRelistNumber", maxRelistNumber);
       services.Item.requestWatchedItems().observe(this, function (tW, responseW) {
-        maxNewBidNumber = 10 - responseW.data.items.length;
+        maxNewBidNumber = 5 - responseW.data.items.length;
         setValue("maxNewBidNumber", maxNewBidNumber);
       });
   });
@@ -305,10 +305,10 @@ const searchTransferMarket = function (buyerSetting) {
             let leagueArray = [16, 10, 39,19,13,341,350];
             let leagueIndex = leagueArray.indexOf(leagueId);
             //console.log("leagueId:" + leagueId + "index:" + index);
-            if (leagueIndex < 0){
-              writeToLog("skip >>> the item is not in certain league",idAutoBuyerFoundLog);
-              continue;
-            }
+            // if (leagueIndex < 0){
+            //   writeToLog("skip >>> the item is not in certain league",idAutoBuyerFoundLog);
+            //   continue;
+            // }
 
             if (bidPrice > calculatedPrice){
               bidPrice = calculatedPrice;

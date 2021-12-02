@@ -34,7 +34,7 @@ export const watchListUtil = function (buyerSetting) {
       let bidPrice = buyerSetting["idAbMaxBid"];
       let sellPrice = buyerSetting["idAbSellPrice"];
 
-      const maxNewBidNumber = 10 - response.data.items.length;
+      const maxNewBidNumber = 5 - response.data.items.length;
       setValue("maxNewBidNumber", maxNewBidNumber);
 
       let activeItems = response.data.items.filter(function (item) {
@@ -333,7 +333,19 @@ const tryBidItems = async (player, bidPrice, sellPrice, buyerSetting) => {
     buyerSetting["idAbAddBuyDelay"] && (await wait(1));
   }else if (isAutoBuyerActive){
     //currentBid is highter than bid price--should untarget
-    services.Item.untarget(player);
+    services.Item.untarget(player).observe(this, function(t, response){
+      if (response.success){
+        writeToLog(
+          `one player bid price is too hight`,
+          idAutoBuyerFoundLog
+        );
+      }else{
+        writeToLog(
+          `untarget one player failed`,
+          idAutoBuyerFoundLog
+        );
+      }
+    });
   }
 };
 
@@ -351,8 +363,8 @@ const sellWonItems = async (player, sellPrice, waitRange) => {
     idProgressAutobuyer
   );
   player.clearAuction();
-
+  await wait(2);
   await promisifyTimeOut(function () {
     services.Item.list(player, getSellBidPrice(sellPrice), sellPrice, 3600);
-  }, 1000);
+  }, 0);
 };
