@@ -34,7 +34,7 @@ export const watchListUtil = function (buyerSetting) {
       let bidPrice = buyerSetting["idAbMaxBid"];
       let sellPrice = buyerSetting["idAbSellPrice"];
 
-      const maxNewBidNumber = 5 - response.data.items.length;
+      const maxNewBidNumber = 6 - response.data.items.length;
       setValue("maxNewBidNumber", maxNewBidNumber);
 
       let activeItems = response.data.items.filter(function (item) {
@@ -363,7 +363,7 @@ const sellWonItems = async (player, sellPrice, waitRange) => {
     idProgressAutobuyer
   );
   player.clearAuction();
-  await wait(2);
+  await wait(1);
   await promisifyTimeOut(function () {
     services.Item.list(player, getSellBidPrice(sellPrice), sellPrice, 3600);
   }, 0);
