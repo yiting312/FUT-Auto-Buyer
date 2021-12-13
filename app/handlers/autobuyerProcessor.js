@@ -229,7 +229,8 @@ const searchTransferMarket = function (buyerSetting) {
           }
 
           const playersId = new Set();
-          for (let i = response.data.items.length - 1; i >= 0; i--) {
+          for (let i = 0; i < response.data.items.length; i++){
+          //for (let i = response.data.items.length - 1; i >= 0; i--) {
             let player = response.data.items[i];
             playersId.add(player.definitionId);
           }
@@ -241,8 +242,8 @@ const searchTransferMarket = function (buyerSetting) {
           
           //logWrite("skip >>> (can not find futbin price)");
 
-
-          for (let i = response.data.items.length - 1; i >= 0; i--) {
+          for (let i = 0; i < response.data.items.length; i++){
+          //for (let i = response.data.items.length - 1; i >= 0; i--) {
             let player = response.data.items[i];
             if (!pricesJSON[player.definitionId]) {
               //writeToLog("skip >>> (can not find futbin price)",idAutoBuyerFoundLog);
