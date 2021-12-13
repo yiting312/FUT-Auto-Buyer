@@ -34,7 +34,7 @@ export const watchListUtil = function (buyerSetting) {
       let bidPrice = buyerSetting["idAbMaxBid"];
       let sellPrice = buyerSetting["idAbSellPrice"];
 
-      const maxNewBidNumber = 6 - response.data.items.length;
+      const maxNewBidNumber = 10 - response.data.items.length;
       setValue("maxNewBidNumber", maxNewBidNumber);
 
       let activeItems = response.data.items.filter(function (item) {
@@ -98,6 +98,12 @@ export const watchListUtil = function (buyerSetting) {
                       bidPrice = calculatedPrice;
                     }
                   }
+
+                  if (currentItem._auction.expires > 30){
+                    writeToLog("skip >>> expires > 30", idAutoBuyerFoundLog);
+                    continue;
+                  }
+
                   await tryBidItems(
                     currentItem,
                     bidPrice,
