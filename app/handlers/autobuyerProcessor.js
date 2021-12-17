@@ -49,7 +49,7 @@ const findOutMaxNewBidAndMaxRelist = async function (){
       maxRelistNumber = 100 - response.data.items.length;
       setValue("maxRelistNumber", maxRelistNumber);
       services.Item.requestWatchedItems().observe(this, function (tW, responseW) {
-        maxNewBidNumber = 10 - responseW.data.items.length;
+        maxNewBidNumber = 30 - responseW.data.items.length;
         setValue("maxNewBidNumber", maxNewBidNumber);
       });
   });

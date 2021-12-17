@@ -34,7 +34,7 @@ const headerVal = () => {
 
 const initFunctionOverrides = function () {
   let isPageLoaded = false;
-  if (services.Localization && headerVal()) {
+  if (services.Localization /**&& headerVal()*/) {
     isPageLoaded = true;
   }
   if (isPageLoaded) {
