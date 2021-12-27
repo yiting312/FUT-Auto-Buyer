@@ -37,6 +37,11 @@ export const buyPlayer = (
 ) => {
   const buyerSetting = getValue("BuyerSettings");
   return new Promise((resolve) => {
+    const isActive = getValue("autoBuyerActive");
+    if (!isActive){
+      resolve();
+      return;
+    }
     services.Item.bid(player, price).observe(
       this,
       async function (sender, data) {
@@ -168,6 +173,7 @@ export const buyPlayer = (
               errorCodeCountMap.get(status).currentVal >=
                 buyerSetting["idAbStopErrorCodeCount"]
             ) {
+              setValue("autoBuyerActive", false);
               logMessage = writeToLog(
                 `[!!!] Autostopping bot since error code ${status} has occured ${
                   errorCodeCountMap.get(status).currentVal
