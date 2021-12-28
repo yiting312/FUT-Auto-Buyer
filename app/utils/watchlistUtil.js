@@ -34,7 +34,7 @@ export const watchListUtil = function (buyerSetting) {
       let bidPrice = buyerSetting["idAbMaxBid"];
       let sellPrice = buyerSetting["idAbSellPrice"];
 
-      const maxNewBidNumber = 30 - response.data.items.length;
+      const maxNewBidNumber = 11 - response.data.items.length;
       setValue("maxNewBidNumber", maxNewBidNumber);
 
       let activeItems = response.data.items.filter(function (item) {
@@ -201,7 +201,7 @@ export const watchListUtil = function (buyerSetting) {
                   rightPrice = Math.max(rightPrice, futbinPrice);
                   //let playerJSON = JSON.stringify(player);
                   //writeToLog("playerJSON" + playerJSON,idAutoBuyerFoundLog);
-
+                  rightPrice = getSellBidPrice(rightPrice);//get lower number
                   if ((rightPrice * 0.95 - player._auction.currentBid) < 50){
                     rightPrice = player._auction.currentBid + 100;
                   }
