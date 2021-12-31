@@ -162,7 +162,17 @@ export const buyPlayer = (
             const errorCodes = new Set(
               buyerSetting["idAbStopErrorCode"].split(",")
             );
-
+            if (status == 461 || status == 426){
+              setValue("autoBuyerActive", false);
+              stopAutoBuyer();
+              if (sendDetailedNotification) {
+                sendNotificationToUser(logMessage);
+              }
+              writeToLog(
+                `[!!!] Autostopping bot since error code ${status} Other user won the (card / bid) has occured \n`,
+                idProgressAutobuyer
+              );
+            }
             if (!errorCodeCountMap.has(status))
               errorCodeCountMap.set(status, { currentVal: 0 });
 
