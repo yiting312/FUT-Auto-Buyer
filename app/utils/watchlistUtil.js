@@ -34,7 +34,7 @@ export const watchListUtil = function (buyerSetting) {
       let bidPrice = buyerSetting["idAbMaxBid"];
       let sellPrice = buyerSetting["idAbSellPrice"];
 
-      const maxNewBidNumber = 11 - response.data.items.length;
+      const maxNewBidNumber = 45 - response.data.items.length;
       setValue("maxNewBidNumber", maxNewBidNumber);
 
       let activeItems = response.data.items.filter(function (item) {
@@ -151,8 +151,13 @@ export const watchListUtil = function (buyerSetting) {
                   }
                 }
 
+                let watchListNumMax = 5;
+                if (boughtItems.length < 5){
+                  watchListNumMax = boughtItems.length;
+                }
                 const playersId = new Set();
-                for (let i = boughtItems.length - 1; i >= 0; i--) {
+                //for (let i = boughtItems.length - 1; i >= 0; i--) {
+                for (let i = watchListNumMax - 1; i >= 0; i--) {
                   let player = boughtItems[i];
                   playersId.add(player.definitionId);
                 }
@@ -165,7 +170,9 @@ export const watchListUtil = function (buyerSetting) {
                 const maxRelistNumber = getValue("maxRelistNumber");
                 let maxReLiNum = maxRelistNumber;
                 writeToLog("maxReLiNum:" + maxReLiNum, idAutoBuyerFoundLog);
-                for (let i = boughtItems.length - 1; i >= 0; i--) {
+                
+                for (let i = watchListNumMax - 1; i >= 0; i--) {
+                //for (let i = boughtItems.length - 1; i >= 0; i--) {
                   if (maxReLiNum < 1){
                     //maxRelistNumber = 0;
                     setValue("maxRelistNumber", 0);
