@@ -118,7 +118,7 @@ export const transferListUtil = function (relistUnsold, minSoldCount) {
         return item.getAuctionData().isInactive();
       });
       updateStats("availableItems", availableItems);
-      /**
+      
       if (availableItems){
         const playersId = new Set();
         for (let i = availableItems - 1; i >= 0; i--) {
@@ -134,6 +134,9 @@ export const transferListUtil = function (relistUnsold, minSoldCount) {
 
         
         for (let i = availableItems - 1; i >= 0; i--) {
+          if (i != 0){
+            continue;
+          }
           let sellPrice = 0;
           const player = availableItemsOrigin[i];
           if (!pricesJSON[player.definitionId]) {
@@ -165,7 +168,7 @@ export const transferListUtil = function (relistUnsold, minSoldCount) {
           }
         }
       }
-      */
+      
 
       const userCoins = services.User.getUser().coins.amount;
       updateStats("coinsNumber", userCoins);
