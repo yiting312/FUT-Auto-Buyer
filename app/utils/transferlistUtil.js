@@ -134,7 +134,7 @@ export const transferListUtil = function (relistUnsold, minSoldCount) {
 
         
         for (let i = availableItems - 1; i >= 0; i--) {
-          if (i != 0){
+          if (i != (availableItems - 1)){
             continue;
           }
           let sellPrice = 0;
